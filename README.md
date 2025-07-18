@@ -1,2 +1,2 @@
 # font color
-<span style = "color:#ff3333">red color</span>
+<span style = "color:#ff6666">red color</span>
