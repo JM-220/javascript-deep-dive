@@ -260,6 +260,24 @@ console.log(Person.prototype); // undefined
 - 생성된 프로토타입은 빌트인 생성자 함수의 `prototype` 프로퍼티에 바인딩된다.
 </details>
 
+### 객체 생성 방식과 프로토타입의 결정
+- 객체 생성 방식
+  1. 객체 리터럴
+  2. `Object` 생성자 함수
+  3. 생성자 함수
+  4. `Object.create`메서드
+  5. 클래스(ES6)
+1. 객체 리터럴에 의해 생성된 객체의 프로토타입
+   -  객체 리터럴을 평가하여 객체를 생성할 때 추상연산 `OrdinaryObjectCreate` 호출한다고 하였다. 즉, 객체 리터럴에 의해 생성되는 객체의 프로토타입은 Object.prototype이다.
+   -  Object 생성자 함수의 프로토타입은 책(281p)에 자세히 그림으로 나와있다.
+   -  만들어진 객체에서 여러 메서드를 사용할 수 있는 것은 프로토타입을 통해 상속받았기 때문.
+2. Object 생성자 함수에 의해 생성된 객체의 프로토타입
+   - Object 생성자를 인수 없이 호출하면 빈 객체가 생성된다. 이 때도 추상연산 `OrdinaryObjectCreate`를 호출한다고 하였다. 즉, `Object.prototype`을 프로토타입으로 가진다.
+3. 생성자 함수에 의해 생성된 객체의 프로토타입
+   - 표준 빌트인 객체인 `Object()` 생성자 함수와 함께 생성되는 `Object.prototype`은 다양한 빌트인 메서드를 갖고 있다.
+   - 하지만 사용자 정의 생성자 함수 Person과 더불어 생성된 `Person.prototype`의 프로퍼티는 constructor 뿐이다.(하지만 Object.prototype이 Person.prototype 상위 체인에 있기 때문에 상속받아 사용은 가능함)
+   - 명시적으로 추가/삭제 할 수도 있음. (Person.prototype.sayHello  = function...)
+
 ### 프로토타입 체인
 - 사용자 지정 생성자 함수에 의해 생성된 객체는 `userFunc.prototype` 뿐만이 아니라 `Object.prototype` 의 `hasOwnProperty` 도 사용 가능하다. 이는 `Object.prototype`을 상속받았음을 의미한다.
     ```javascript
