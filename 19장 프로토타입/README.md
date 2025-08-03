@@ -7,6 +7,10 @@
     - [프로토타입 객체](#프로토타입-객체)
     - [리터럴 표기법에 의해 생성된 객체의 생성자 함수와 프로토타입](#리터럴-표기법에-의해-생성된-객체의-생성자-함수와-프로토타입)
     - [프로토타입의 생성 시점](#프로토타입의-생성-시점)
+    - [프로토타입 체인](#프로토타입-체인)
+    - [오버라이딩과 프로퍼티 섀도잉](#오버라이딩과-프로퍼티-섀도잉)
+    - [프로토타입의 교체](#프로토타입의-교체)
+    - [instanceof 연산자](#instanceof-연산자)
 
 ### 객체지향 프로그래밍
 - <span style = "color:#ff6666">객체지향 프로그래밍은 프로그램을 명령어 또는 함수의 목록으로 보는 전통적인 명령형 프로그래밍의 절차지향적 관점에서 벗어나 여러 개의 독깁적 단위, 즉 객체의 집합으로 프로그램을 표현하려는 프로그래밍 패러다임을 말한다</span>
@@ -255,3 +259,88 @@ console.log(Person.prototype); // undefined
 - 모든 빌트인 생성자 함수는 전역 객체가 생성되는 시점에 생성된다.
 - 생성된 프로토타입은 빌트인 생성자 함수의 `prototype` 프로퍼티에 바인딩된다.
 </details>
+
+### 프로토타입 체인
+- 사용자 지정 생성자 함수에 의해 생성된 객체는 `userFunc.prototype` 뿐만이 아니라 `Object.prototype` 의 `hasOwnProperty` 도 사용 가능하다. 이는 `Object.prototype`을 상속받았음을 의미한다.
+    ```javascript
+    Object.getPrototypeOf(Person.prototype) === Object.prototype; // true
+    ```
+- <span style = "color:#ff6666">자바스크립트 객체의 프로퍼티에 접근하려 할 때 해당 객체에 접근하려는 프로퍼티가 없다면 `[[Prototype]]` 내부 슬롯의 참조를 따라 자신의 부모 역할을 하는 프로토타입의 프로퍼티를 순차적으로 검색한다. 이를 프로토타입 체인이라고 한다.</span>
+- 프로토타입 체인은 자바스크립트가 객체지향 프로그래밍의 상속을 구현하는 메커니즘이다.
+- 프로토타입 체인의 최상위에 위치하는 객체는 언제나 `Object.prototype`이다. `Object.prototype` 의 프로토타입은 `null` 이다
+- 스코프 체인과 프로토타입 체인이 서로 협력하여 식별자와 프로퍼티를 검색하는데 사용된다.
+
+### 오버라이딩과 프로퍼티 섀도잉
+- 프로토타입 프로퍼티와 같은 이름의 프로퍼티를 인스턴스에 추가하면 프로토타입 체인을 따라 프로토타입 프로퍼티를 검색하여 프로토타입 프로퍼티를 덮어쓰는 것이 아니라 인스턴스 프로퍼티로 추가한다. 이처럼 상속 관계에 의해 프로퍼티가 가려지는 현상을 프로퍼티 섀도잉이라 한다.
+- 프로퍼티를 삭제, 추가, 변경하는 경우 마찬가지로 상위 프로토타입 체인의 프로퍼티를 삭제, 추가, 변경하는 경우 하위 체인의 객체에서 하면 안되고 상위에서 직접 시도하여야 한다.
+
+### 프로토타입의 교체
+- 프로토타입은 임의의 다른 객체로 변경할 수 있다. 생성자 함수 or 인스턴스에서 교체 가능
+<details>
+<summary>생성자 함수에 의한 프로토타입 교체</summary>
+
+```javascript
+const Person = (function(){
+    function Person(name){
+        this.name = name;
+    }
+    // 생성자 함수의 prototype 프로퍼티를 통해 프로토타입을 교체
+    Person.prototype = {
+        sayHello(){
+            console.log(`hi my name is ${this.name}`);
+        }
+    };
+    return Person;
+}());
+
+const me = new Person('Lee');
+```
+- 프로토타입으로 교체한 객체 리터럴에는 `constructor` 프로퍼티가 없다. `constructor`프로퍼티는 자바스크립트 엔진이 암묵적으로 추가한 프로퍼티이다.
+- 근데 이제 `constructor`는 생성자 함수를 가리켜서 생성자 함수, 인스턴스, 프로토타입 세가지가 서로 가리키는 형태였는데 이러면 `constructor` 프로퍼티가 `Object.prototype` 에 있는 `constructor` 가 참조되어 `Object`를 가리킨다.
+- 다 설명해놓고 프로토타입을 직접 교체하지 않는 것이 좋다고 함.
+```javascript
+// 복구치는 법
+const Person = (function(){
+    function Person(name){
+        this.name = name;
+    }
+
+    // 생성자 함수의 prototype 프로퍼티를 통해 프로토타입을 교체
+    Person.prototype = {
+        // constructor 프로퍼티와 생성자 함수 간의 연결을 설정
+        constructor: Person,
+        sayHello(){
+            console.log(`hi my name is ${this.name}`);
+        }
+    };
+    return Person
+}());
+const me = new Person('lee');
+console.log(me.constructor === Person); // true
+console.log(me.constructor === Object); // false
+```
+</details>
+
+<details>
+<summary>인스턴스에 의한 프로토타입의 교체</summary>
+
+- 프로토타입은 생성자 함수의 `.prototype` 과 인스턴스의 `__proto__` 접근자 프로퍼티를 통해 접근할 수 있다.
+- 따라서 인스턴스에서도 프로토타입을 `__proto__`로 변경, 수정, 삭제 가능.
+- 생성자 함수에 의한 프로토타입 교체와 마찬가지로 세 요소간 연결이 끊길 수 있다.
+- 방식은 약간 다른데 생성자 함수에 의한 프로토타입 교체는 `생성자함수.prototype` 이 교체된 프로토타입을 가리키지만 인스턴스에 의한 교체는 `생성자함수.prototype`이 교체된 프로토타입을 가리키지 않는다. 다시 연결하려면 `생성자함수.prototype = 인스턴스.__proto__` 이렇게 해야 할 듯 하다.
+</details>
+
+### instanceof 연산자
+- `객체 instanceof 생성자 함수` 우항의 피연산자가 함수가 아닌 경우 TypeError 발생.
+- 우변의 생성자 함수의 prototype에 바인딩된 객체가 좌변의 객체의 프로토타입 체인 상에 존재하면 true로 평가되고 아닌경우 false로 평가됨. (그러면 프로토타입 교체하면 false로 평가될 지도..?)
+```javascript
+// 생성자 함수
+function Person(name){
+    this.name = name;
+}
+const me = new Person('lee');
+// Person.prototype이 me 객체의 프로토타입 체인 상에 존재하므로 true로 평가됨.
+console.log(me instanceof Person); // true
+// Object.prototype이 me 객체의 프로토타입 체인 상에 존재하므로 true로 평가됨.
+console.log(me instanceof Object); // true
+```
