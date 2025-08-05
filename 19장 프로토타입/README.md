@@ -7,10 +7,12 @@
     - [프로토타입 객체](#프로토타입-객체)
     - [리터럴 표기법에 의해 생성된 객체의 생성자 함수와 프로토타입](#리터럴-표기법에-의해-생성된-객체의-생성자-함수와-프로토타입)
     - [프로토타입의 생성 시점](#프로토타입의-생성-시점)
+    - [객체 생성 방식과 프로토타입의 결정](#객체-생성-방식과-프로토타입의-결정)
     - [프로토타입 체인](#프로토타입-체인)
     - [오버라이딩과 프로퍼티 섀도잉](#오버라이딩과-프로퍼티-섀도잉)
     - [프로토타입의 교체](#프로토타입의-교체)
     - [instanceof 연산자](#instanceof-연산자)
+    - [직접 상속](#직접-상속)
 
 ### 객체지향 프로그래밍
 - <span style = "color:#ff6666">객체지향 프로그래밍은 프로그램을 명령어 또는 함수의 목록으로 보는 전통적인 명령형 프로그래밍의 절차지향적 관점에서 벗어나 여러 개의 독깁적 단위, 즉 객체의 집합으로 프로그램을 표현하려는 프로그래밍 패러다임을 말한다</span>
@@ -349,8 +351,8 @@ console.log(me.constructor === Object); // false
 </details>
 
 ### instanceof 연산자
-- `객체 instanceof 생성자 함수` 우항의 피연산자가 함수가 아닌 경우 TypeError 발생.
 - 우변의 생성자 함수의 prototype에 바인딩된 객체가 좌변의 객체의 프로토타입 체인 상에 존재하면 true로 평가되고 아닌경우 false로 평가됨. (그러면 프로토타입 교체하면 false로 평가될 지도..?)
+- `객체 instanceof 생성자 함수` 우변의 피연산자가 함수가 아닌 경우 TypeError 발생.
 ```javascript
 // 생성자 함수
 function Person(name){
@@ -362,3 +364,76 @@ console.log(me instanceof Person); // true
 // Object.prototype이 me 객체의 프로토타입 체인 상에 존재하므로 true로 평가됨.
 console.log(me instanceof Object); // true
 ```
+- 프로토타입 교체
+```javascript
+function Person(name){
+    this.name = name;
+}
+const me = new Person('Lee');
+
+// 프로토타입으로 교체할 객체
+const parent = {};
+// 교체
+Object.setPrototype(me,parent);
+
+console.log(Person.prototype === parent); // false
+console.log(Person.constructor === parent); // false
+
+console.log(me instanceof Person); // false
+console.log(me instanceof Object); // true
+```
+- `me` 는 `Person` 생성자 함수에 의해 만들어진 인스턴스임에 틀림없지만 `instanceof` 연산을 하면 false 로 평가됨.
+- 이처럼 `instanceof` 연산자는 프로토타입의 constructor 프로퍼티가 가리키는 생성자 함수를 찾는 것이 아니라 생성자 함수의 prototype에 바인딩된 객체가 프로토타입 체인 상에 존재하는지 확인한다.
+- 298p 이미지 확인
+```javascript
+// instanceof 연산자 함수로 구현-> 대략
+function isInstanceof(instance,constructor){
+    // 인스턴스 프로토타입 취득
+    const prototype = Object.getPrototypeOf(instance);
+
+    // 재귀 탈출 조건
+    // prototype 이 null 이면 프로토타입 체인의 좀점에 다다른 것.
+    if (prototype === null) return false;
+
+    // 프로토타입이 생성자 함수의 prototype 프로퍼티에 바인딩된 객체라면 true를 반환한다. (단축평가)
+    return prototype === constructor.prototype || isInstanceof(prototype, constructor);
+}
+console.log(isInstanceof(me,Person)); // true
+console.log(isInstanceof(me,Object)); // true
+console.log(isInstanceof(me,Array)); // false
+```
+```javascript
+const Person = (function(){
+    function Person(name){
+        this.name = name;
+    }
+
+    // 생성자 함수의 prototype 프로퍼티를 통해 프로토타입을 교체
+    Person.prototype = {
+        sayHello(){
+            console.log(`Hi my name is ${this.name}`);
+        }
+    };
+
+    return Person;
+}());
+const me = new Person('Lee');
+
+// constructor 프로퍼티와 생성자 함수 간의 연결이 파괴되어도 instanceof는 아무런 영향을 받지 않는다
+console.log(me.constructor === Person); // false
+
+// Person.prototype이 me 객체의 프로토타입 체인 상에 존재하므로 true로 평가된다.
+console.log(me instanceof Person); // true
+// Object.prototype이 me 객체의 프로토타입 체인 상에 존재하므로 true로 평가된다.
+console.log(me instanceof Object); // true
+```
+
+### 직접 상속
+<details>
+<summary>Object.create에 의한 직접 상속</summary>
+
+- `object.create` 메서드는 명시적으로 프로토타입을 지정하여 새로운 객체를 생성한다. Object.create 메서드도 다른 객체 생성 방식과 마찬가지로 추상 연산을 호출함
+- 첫 번째 매개변수에는 생성할 객체의 프로토타입으로 지정할 객체를 전달. 두번째 매개변수에는 생성할 객체의 프로퍼티 키와 프로퍼티 디스크립터 객체로 이뤄진 객체를 전달.
+</details>
+
+- 프로토타입 어려워서 일단 여기서 마무리 하고 뒤에 더 보고 실습좀 하고 다시 16장부터 복습하기로...
