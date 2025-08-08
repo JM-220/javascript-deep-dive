@@ -122,3 +122,95 @@
     Array.from({length:3}); // [undefined, undefined, undefined] 로 동작 이 경우 희소배열처럼 동작하지 않는다. 프로퍼티가 존재 함.
     Array.from({length:3}, (_,i)=>i); // [0,1,2] 
     ```
+### 배열 요소의 참조
+- 배열의 요소를 참조할 때에는 대괄호`[]` 표기법을 사용한다. 안에는 인덱스가 와야한다. 
+- 존재하지 않는 인덱스를 참조하면 `undefined` 가 반환된다.
+  ```javascript
+  const arr = [1,2];
+  console.log(arr[0]); // 1
+  console.log(arr[1]); // 2
+  console.log(arr[2]); // undefined
+  ```
+### 배열 요소의 추가와 갱신
+- 객체에 프로퍼티를 동적으로 추가할 수 있는 것처럼 배열에도 요소를 동적으로 추가할 수 있다. 이때 `length` 프로퍼티 값은 자동 갱신된다.
+- 만약 현재 배열의 `length` 프로퍼티 값보다 큰 인덱스로 새로운 요소를 추가하면 희소 배열이 된다.
+- 인덱스는 0 이상의 정수이어야 하는데 아닌 경우 프로퍼티로 추가가 되며 이때 `length` 프로퍼티는 갱신되지 않는다
+- 존재하는 인덱스에 할당하면 재할당이 이루어진다.
+  ```javascript
+  const arr = [0];
+  arr[1] = 1;
+  console.log(arr); // [0, 1]
+  console.log(arr.length) // 2
+
+  arr[100] = 100;
+  // 추가하지 않은 요소는 생성되지 않는다.
+  console.log(arr); // [0, 1, empty x 98, 100]
+  console.log(arr.length); // 101
+  ```
+  ```javascript
+  const arr = [];
+  arr[0] = 0;
+  arr['1'] = 2;
+  arr['foo'] = 3;
+  arr.bar = 4;
+  arr[1.1] = 5;
+  arr[-1] = 6;
+
+  console.log(arr); // [1, 2, foo: 3, bar: 4, '1.1': 5, '-1': 6]
+  console.log(arr.length); // 2
+  ```
+### 배열 요소의 삭제
+- 배열은 사실 객체이기 때문에 배열의 특정 요소를 삭제하기 위해 delete 연산자를 사용할 수 있다. 하지만 delete 사용시 `length` 프로퍼티에 반영이 되지 않아 희소배열이 되기 때문에 권장되지 않음
+- 희소배열을 만들지 않고 배열의 특정 요소를 완전히 삭제하려면 `Array.prototype.splice` 를 사용해야 한다.
+  ```javascript
+   const arr = [1, 2, 3];
+   delete arr[1];
+   console.log(arr); // [1, empty, 3]
+   console.log(arr.length) // 3
+  ```
+  ```javascript
+  const arr = [1, 2, 3];
+  // Array.prototype.splice(삭제할 인덱스 수, 삭제할 요소 수)
+  arr.splice(1,1);
+  console.log(arr); // [1,3]
+  // length 프로퍼티 자동 갱신
+  console.log(arr.length); // 2
+  ```
+### 배열 메서드
+- 자바스크립트는 배열을 다룰 때 유용한 다양한 빌트인 메서드를 제공한다. `Array` 생성자 함수는 정적 메서드를 제공하며, 배열 객체의 프로토타입인 `Array.prototype`은 프로토타입 메서드를 제공한다.
+- <span style = "color:#ff6666">주의할 점은 배열 메서드 중 `this` 가 가리키는 객체 원본을 직접 변경하는 메서드와 원본 배열을 변경하지 않고 새로운 배열을 생성하여 반환하는 메서드가 있다.</span>
+- 가급적 원본 배열을 변경하지 않는 메서드를 사용하는 것이 좋다.
+<details>
+<summary>메서드</summary>
+
+#### `Array.isArray`
+- `Array` 생성자 함수의 정적 메서드
+- 전달된 인수가 배열이면 `true`, 아니면 `false` 를 반환한다.
+- 판단 기준 책에 제시되지 않음.
+  ```javascript
+  Array.isArray([]); // true
+  Array.isArray({}); // false
+  ```
+
+#### `Array.prototype.indexOf`
+- `Array.prototype` 객체의 프로퍼티 함수
+- 원본 배열에서 인수로 전달된 요소를 검색하여 인덱스를 반환
+- 인수가 여러개라면 첫 번째로 검색된 요소의 인덱스를 반환
+- 존재하지 않으면 -1 반환
+- 배열에 특정 요소가 존재하는지 확인할 때 유용.
+- 하지만 ES7 에 includes 메서드 도입으로 가독성은 이게 더 좋음.
+  ```javascript
+  const arr = [1, 2, 2, 3];
+  arr.indexOf(2); // 1
+  arr.indexOf(4); // -1
+  // 두 번째 인수는 검색을 시작할 인덱스다.
+  arr.indexOf(2,2); // 2
+  ```
+#### `Array.prototype.push`
+- `push` 메서드는 인수로 전달받은 모든 값을 원본 배열의 마지막 요소로 추가하고 변경된 `length`프로퍼티 값을 반환한다. <span style = "color:#ff6666">`push`메서드는 원본 배열을 직접 변경한다.</span>
+- `push` 메서드는 성능 면에서 좋지 않다. 추가할 요소가 하나 뿐이라면 `arr[arr.length] = 3` 이 방법이 `push` 메서드보다 빠르다.
+- 스프레드 문법을 쓰는 것도 좋다. 원본 배열을 변경하지 않기 때문이다. (35장에서 자세히)
+
+#### `Array.prototype.pop`
+
+</details>
