@@ -212,5 +212,125 @@
 - 스프레드 문법을 쓰는 것도 좋다. 원본 배열을 변경하지 않기 때문이다. (35장에서 자세히)
 
 #### `Array.prototype.pop`
+- `pop` 메서드는 원본 배열에서 마지막 요소를 제거하고 제거한 요소를 반환한다. 원본 배열이 빈 배열이면 `undefined` 를 반환한다. <span style = "color:#ff6666">`pop` 메서드는 원본 배열을 직접 변경한다.</span>
+- `pop` 메서드와 `push` 메서드를 사용해 스택을 쉽게 구현할 수 있다.
 
+<details>
+<summary> 스택을 생성자 함수로 구현
+</summary>
+
+  ```javascript
+  const Stack = (function (){
+    function Stack(array = []){
+      if (!Array.isArray(array)){
+      // 47장 에러 처리
+      throw new TypeError(`${array} is not an array`);
+      }
+    // 복사본 사용? 원본이 직접 변경되는 것을 막으려고?
+    this.array = array;
+    }
+    Stack.prototype = {
+      constructor: Stack,
+      push(value){
+        return this.array.push(value);
+      },
+      pop(value){
+        return this.array.pop();
+      },
+      // 스택의 복사본 배열을 반환
+      entries(){
+        return [...this.array];
+      }
+    };
+    return Stack;
+  }())
+  ```
+</details>
+
+<details>
+<summary>스택을 클래스로 구현</summary>
+
+  ```javascript
+  class Stack {
+    #array; // private class member
+    constructor(array = []){
+      if (!Array.isArray(array)){
+        throw new TypeError(`${array} is not an array`);
+      }
+      this.#array = array;
+    }
+    push(value){
+      return this.#array.push(value);
+    }
+    pop(value){
+      return this.#array.pop(value);
+    }
+    entries(){
+      return [...this.#array];
+    }
+  }
+  ```
+</details>
+
+#### `Array.prototype.unshift`
+- `unshift` 메서드는 인수로 전달받은 모든 값을 원본 배열의 선두에 요소로 추가하고 변경된 `length` 프로퍼티 값을 반환한다.
+- `push`,`pop`메서드와 동일하게 원본 배열을 변경한다. 스프레드 문법을 사용하는 편이 좋다.
+
+#### `Array.prototype.shift`
+- `shift` 메서드는 원본 배열에서 첫 번째 요소를 제거하고 제거한 요소를 반환한다. 원본 배열이 빈 배열이면 `undefined`를 반환한다.
+- 동일하게 원본 배열을 변경한다.
+- `shift`와 `push` 메서드를 사용하면 큐를 쉽게 구현할 수 있다.
+
+<details>
+<summary>큐를 생성자 함수로 구현</summary>
+
+  ```javascript
+  const Queue = (function (){
+    function Queue(array = []){
+      if(!Array.isArray(array)){
+        throw new TypeError(`${array} is not an array`);
+      }
+      this.array = array;
+    }
+    Queue.prototype = {
+      constructor: Queue,
+      enqueue(value){
+        return this.array.push(value);
+      }
+      dequeue(){
+        return this.array.shift();
+      }
+      entries(){
+        return [...this.array];
+      }
+    };
+    return Queue;
+  }())
+  ```
+</details>
+
+<details>
+<summary>큐를 클래스로 구현</summary>
+
+  ```javascript
+  class Queue{
+    #array; // private class member
+    constructor(array = []){
+      if(!Array.isArray(array)){
+        throw new TypeError(`${array} is not an array`);
+      }
+      this.#array = array;
+    }
+    enequeue(value){
+      return this.#array.push(value);
+    }
+    dequeue(){
+      return this.#array.shift();
+    }
+    entries(){
+      return [...this.#array];
+    }
+  }
+  ```
+</details>
 </details>
